@@ -3,9 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"goAssignment/processor"
+	"goAssignment/model"
+	"goAssignment/process"
 	"net/http"
+
+	"github.com/google/uuid"
 )
+
+var workFlow = map[string]any{}
 
 func main() {
 
@@ -13,15 +18,51 @@ func main() {
 		fmt.Fprintln(w, "Hello from Go server")
 	})
 
-	http.HandleFunc("/data", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/claims/identify", func(w http.ResponseWriter, r *http.Request) {
 
-		result := processor.ProcessData()
+		// allow only post req
+		if r.Method != http.MethodPost{
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		var req ProductReq
+		if	err := json.NewDecoder(r.Body).Decode(&req); err != nil{
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error":"invalid productId",
+			})
+			return
+		}
+
+
+		productData, claim, err := process.LoadData(req.ProductId)
+
+		if err != nil{
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]any{
+				"error":err.Error(),
+			})
+		}
+
+		workFlow := &model.WorkFlow{
+        WorkFlowId: "wf-" + uuid.New().String(),
+        Status:     "IN_PROGRESS",
+    	}
+
+		go process.DetectClaims(productData, claim, workFlow)
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode(workFlow)
 	})
 
 
 	fmt.Println("Server running on port 8080")
 	http.ListenAndServe(":8080", nil)
 }
+
+
+type ProductReq struct{
+	ProductId 	string `json:"productId"`
+}
+
