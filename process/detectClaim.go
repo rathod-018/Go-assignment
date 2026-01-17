@@ -2,6 +2,7 @@ package process
 
 import (
 	"goAssignment/model"
+	workflowstore "goAssignment/workFlowStore"
 	"strings"
 
 	"github.com/google/uuid"
@@ -20,8 +21,8 @@ func DetectClaims(productData any, claim any, wf *model.WorkFlow) {
 		}
 
 	}
-	wf.Status="COMPLETED"
-	wf.Product= productData
+	
+	workflowstore.UpdateWorkFlow(wf.WorkFlowId, "COMPLETED", productData)
 
 }
 

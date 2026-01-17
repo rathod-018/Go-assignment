@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"goAssignment/model"
 	"goAssignment/process"
+	workflowstore "goAssignment/workFlowStore"
 	"net/http"
 
 	"github.com/google/uuid"
 )
 
-var workFlow = map[string]any{}
 
 func main() {
 
@@ -35,7 +35,6 @@ func main() {
 			return
 		}
 
-
 		productData, claim, err := process.LoadData(req.ProductId)
 
 		if err != nil{
@@ -50,7 +49,26 @@ func main() {
         Status:     "IN_PROGRESS",
     	}
 
+		workflowstore.CreateWorkFlow(workFlow)
+
 		go process.DetectClaims(productData, claim, workFlow)
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(workFlow)
+	})
+
+	http.HandleFunc("/claims/status/{workflowId}", func(w http.ResponseWriter, r *http.Request) {
+		workFlowId := r.PathValue("workflowId")
+		
+		workFlow, err := workflowstore.GetWorkFlow(workFlowId)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]any{
+				"error":err.Error(),
+			})
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(workFlow)
