@@ -1,42 +1,42 @@
 package process
 
 import (
-	"goAssignment/model"
 	workflowstore "goAssignment/workFlowStore"
 	"strings"
 
 	"github.com/google/uuid"
 )
 
-var claims = []map[string]any{}
 
-func DetectClaims(productData any, claim any, wf *model.WorkFlow) {
+func DetectClaims(productData any, claim any, workFlowId string) {
+	 claims := []map[string]any{}
+
 	claimMap, _ := claim.(map[string]string) 
 	for key, value := range claimMap{
 
 		splitValues := strings.Split(value,", ")
 
 		for _,value :=range splitValues{
-			findClaims(key, value, productData)
+			findClaims(key, value, productData, &claims)
 		}
 
 	}
 	
-	workflowstore.UpdateWorkFlow(wf.WorkFlowId, "COMPLETED", productData)
+	workflowstore.UpdateWorkFlow(workFlowId, "COMPLETED", productData, claims)
 
 }
 
-func findClaims(key string, claim string, data any,){
+func findClaims(key string, claim string, data any, claims *[]map[string]any){
 if m, ok := data.(map[string]any); ok {
 		for _, value := range m {
-			findClaims(key, claim, value)
+			findClaims(key, claim, value, claims)
 		}
 		return
 	}
 
 	if s, ok := data.([]any); ok {
 		for _, item := range s {
-			findClaims(key, claim, item)
+			findClaims(key, claim, item, claims)
 		}
 		return
 	}
@@ -60,7 +60,7 @@ if m, ok := data.(map[string]any); ok {
 				"status":     newClaim.Status,
 			}
 
-			claims = append(claims, result)
+			*claims = append(*claims, result)
 			return
 		}
 	}

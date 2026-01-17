@@ -51,7 +51,7 @@ func main() {
 
 		workflowstore.CreateWorkFlow(workFlow)
 
-		go process.DetectClaims(productData, claim, workFlow)
+		go process.DetectClaims(productData, claim, workFlow.WorkFlowId)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(workFlow)

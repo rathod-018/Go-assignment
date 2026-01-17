@@ -14,7 +14,7 @@ func LoadData(productId string) (any, any, error) {
 		return nil, nil, fmt.Errorf("Error while reading file")
 	}
 	var data map[string]any
-	var claim map[string]any
+	var claim map[string]string
 
 	 if err := json.Unmarshal(dataBytes, &data); err != nil {
         return nil, nil, fmt.Errorf("invalid data.json: %w", err)

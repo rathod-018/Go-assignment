@@ -18,7 +18,7 @@ func CreateWorkFlow(wf *model.WorkFlow){
 }
 
 
-func UpdateWorkFlow(workFlowId string, status string, productData any ) error{
+func UpdateWorkFlow(workFlowId string, status string, productData any,claim any ) error{
 
 	mut.Lock()
 	defer mut.Unlock()
@@ -30,6 +30,7 @@ func UpdateWorkFlow(workFlowId string, status string, productData any ) error{
 
 	wf.Status=status
 	wf.Product=productData
+	wf.Claims=claim
 
 	return  nil
 }
